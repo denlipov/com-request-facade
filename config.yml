@@ -1,0 +1,23 @@
+project:
+  name: Ozon Code Platform Template API
+  debug: true
+  environment: development
+
+database:
+  host: postgresx
+    #host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  name: ozonmp
+  sslmode: disable
+  migrations: migrations
+  driver: pgx
+
+kafka:
+  capacity: 512
+  topic: "com-request-events"
+  groupId: "com-request-api"
+  brokers:
+    - "kafka:9092"
+    - "localhost:9094"

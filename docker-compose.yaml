@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  com-request-facade:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: com-request-facade
+    networks:
+      - facadenw
+      - com-request-api_ompnw
+    depends_on:
+      - postgresx
+    volumes:
+      - ./migrations:/root/migrations
+      - ./config.yml:/root/config.yml
+
+  postgresx:
+    image: postgres:latest
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      timeout: 45s
+      interval: 10s
+      retries: 10
+    restart: always
+    logging:
+      driver: 'gelf'
+      options:
+        gelf-address: 'udp://localhost:12201'
+        tag: postgres
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ozonmp
+      APP_DB_USER: docker
+      APP_DB_PASS: docker
+    networks:
+      - facadenw
+    volumes:
+      - ../facade_postgres_data:/var/lib/postgresql/data:rw
+      - ./scripts/init-database.sh:/docker-entrypoint-initdb.d/init-database.sh
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  facadenw:
+    driver: bridge
+      #    internal: true
+  com-request-api_ompnw:
+    external: true
